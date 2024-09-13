@@ -8,6 +8,7 @@ const client = new Client({
     IntentsBitField.Flags.GuildMembers,
     IntentsBitField.Flags.GuildMessages,
     IntentsBitField.Flags.MessageContent,
+    IntentsBitField.Flags.DirectMessages,
   ],
 });
 
@@ -17,6 +18,15 @@ client.on("ready", (c) => {
 
 client.on("messageCreate", (message) => {
   console.log(message.content);
+});
+
+client.on("interactionCreate", (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+
+  if (interaction.commandName === "email") {
+    console.log(interaction);
+    interaction.user.send("Hey");
+  }
 });
 
 client.login(process.env.DISCORD_TOKEN);
