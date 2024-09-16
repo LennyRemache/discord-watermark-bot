@@ -1,4 +1,9 @@
-import { Client, GuildMember, IntentsBitField, EmbedBuilder } from "discord.js";
+import { Client, IntentsBitField, AttachmentBuilder } from "discord.js";
+import {
+  addWatermark,
+  downloadImage,
+  loadWatermark,
+} from "./imageProcessor.mjs";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -11,31 +16,40 @@ const client = new Client({
   ],
 });
 
-// signal when bot is live
-client.on("ready", (c) => {
-  console.log(`${c.user.tag} is online!`);
+client.once("ready", () => {
+  console.log("Bot is online!");
 });
 
-// custom prefix commands
-client.on("messageCreate", (message) => {
-  console.log(message.content);
-  if (message.content.startsWith("?")) {
-    const command = message.content.slice(1);
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
 
-    if (command === "email") {
-      console.log(message.member.permissions.has("Administrator"));
-      message.channel.send("EMAIL");
+  // Check if there's an attachment
+  if (message.attachments.size > 0) {
+    const attachment = message.attachments.first();
+
+    // Ensure the attachment is an image
+    if (!attachment.contentType.startsWith("image/")) {
+      return message.reply("Please upload a valid image.");
     }
-  }
-});
 
-// slash commands
-client.on("interactionCreate", (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+    try {
+      const imageBuffer = await downloadImage(attachment.url);
+      const watermarkBuffer = await loadWatermark();
+      const processedImage = await addWatermark(imageBuffer, watermarkBuffer);
+      await message.delete();
 
-  if (interaction.commandName === "email") {
-    console.log(interaction);
-    interaction.user.send("Hey");
+      const processedAttachment = new AttachmentBuilder(
+        processedImage,
+        "watermarked-image.png"
+      );
+      await message.channel.send({
+        content: "",
+        files: [processedAttachment],
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      message.reply("There was an error processing your image.");
+    }
   }
 });
 
