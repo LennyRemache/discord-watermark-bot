@@ -57,7 +57,7 @@ client.on("messageCreate", async (message) => {
         .setImage("attachment://watermarked-image.png");
 
       await message.channel.send({
-        content: `Congratulationso on your success <@${user.id}>!`,
+        content: `Congratulations on your success <@${user.id}>!`,
         embeds: [embed],
         files: [processedAttachment],
       });
