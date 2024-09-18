@@ -1,4 +1,9 @@
-import { Client, IntentsBitField, AttachmentBuilder } from "discord.js";
+import {
+  Client,
+  GatewayIntentBits,
+  AttachmentBuilder,
+  EmbedBuilder,
+} from "discord.js";
 import {
   addWatermark,
   downloadImage,
@@ -9,10 +14,10 @@ dotenv.config();
 
 const client = new Client({
   intents: [
-    IntentsBitField.Flags.Guilds,
-    IntentsBitField.Flags.GuildMessages,
-    IntentsBitField.Flags.MessageContent,
-    IntentsBitField.Flags.GuildMembers,
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
   ],
 });
 
@@ -26,6 +31,9 @@ client.on("messageCreate", async (message) => {
   // Check if there's an attachment
   if (message.attachments.size > 0) {
     const attachment = message.attachments.first();
+    const text = message.content;
+    const username = message.author.globalName || message.author.username;
+    const avatarURL = message.author.displayAvatarURL({ format: "png" });
 
     // Ensure the attachment is an image
     if (!attachment.contentType.startsWith("image/")) {
@@ -33,17 +41,23 @@ client.on("messageCreate", async (message) => {
     }
 
     try {
+      const url = attachment.url;
       const imageBuffer = await downloadImage(attachment.url);
       const watermarkBuffer = await loadWatermark();
       const processedImage = await addWatermark(imageBuffer, watermarkBuffer);
       await message.delete();
 
-      const processedAttachment = new AttachmentBuilder(
-        processedImage,
-        "watermarked-image.png"
-      );
+      const processedAttachment = new AttachmentBuilder(processedImage, {
+        name: "watermarked-image.png",
+      });
+
+      const embed = new EmbedBuilder()
+        .setAuthor({ name: username, iconURL: avatarURL })
+        .setDescription(text)
+        .setImage("attachment://watermarked-image.png");
+
       await message.channel.send({
-        content: "",
+        embeds: [embed],
         files: [processedAttachment],
       });
     } catch (error) {
