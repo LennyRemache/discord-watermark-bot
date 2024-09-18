@@ -28,42 +28,51 @@ client.once("ready", () => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  // Check if there's an attachment
-  if (message.attachments.size > 0) {
-    const attachment = message.attachments.first();
-    const text = message.content;
-    const user = message.author;
-    const username = user.globalName || user.username;
-    const avatarURL = user.displayAvatarURL({ format: "png" });
+  if (message.channel.id === process.env.SUCCESS_CHANNEL_ID) {
+    // Check if there's an attachment
+    if (message.attachments.size > 0) {
+      const attachment = message.attachments.first();
+      const text = message.content;
+      const user = message.author;
+      const username = user.globalName || user.username;
+      const avatarURL = user.displayAvatarURL({ format: "png" });
 
-    // Ensure the attachment is an image
-    if (!attachment.contentType.startsWith("image/")) {
-      return message.reply("Please upload a valid image.");
-    }
+      // Ensure the attachment is an image
+      if (!attachment.contentType.startsWith("image/")) {
+        return message.reply("Please upload a valid image.");
+      }
 
-    try {
-      const imageBuffer = await downloadImage(attachment.url);
-      const watermarkBuffer = await loadWatermark();
-      const processedImage = await addWatermark(imageBuffer, watermarkBuffer);
-      await message.delete();
+      try {
+        const imageBuffer = await downloadImage(attachment.url);
+        const watermarkBuffer = await loadWatermark();
+        const processedImage = await addWatermark(imageBuffer, watermarkBuffer);
+        await message.delete();
 
-      const processedAttachment = new AttachmentBuilder(processedImage, {
-        name: "watermarked-image.png",
-      });
+        const processedAttachment = new AttachmentBuilder(processedImage, {
+          name: "watermarked-image.png",
+        });
 
-      const embed = new EmbedBuilder()
-        .setAuthor({ name: username, iconURL: avatarURL })
-        .setDescription(text)
-        .setImage("attachment://watermarked-image.png");
+        const embed =
+          text === ""
+            ? new EmbedBuilder()
+                .setAuthor({ name: username, iconURL: avatarURL })
+                .setDescription(text ? "" : null)
+                .setImage("attachment://watermarked-image.png")
+                .setTimestamp()
+            : new EmbedBuilder()
+                .setAuthor({ name: username, iconURL: avatarURL })
+                .setImage("attachment://watermarked-image.png")
+                .setTimestamp();
 
-      await message.channel.send({
-        content: `Congratulations on your success <@${user.id}>!`,
-        embeds: [embed],
-        files: [processedAttachment],
-      });
-    } catch (error) {
-      console.error("Error:", error);
-      message.reply("There was an error processing your image.");
+        await message.channel.send({
+          content: `Congratulations on your success <@${user.id}>!`,
+          embeds: [embed],
+          files: [processedAttachment],
+        });
+      } catch (error) {
+        console.error("Error:", error);
+        message.reply("There was an error processing your image.");
+      }
     }
   }
 });
