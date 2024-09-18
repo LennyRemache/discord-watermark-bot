@@ -32,8 +32,9 @@ client.on("messageCreate", async (message) => {
   if (message.attachments.size > 0) {
     const attachment = message.attachments.first();
     const text = message.content;
-    const username = message.author.globalName || message.author.username;
-    const avatarURL = message.author.displayAvatarURL({ format: "png" });
+    const user = message.author;
+    const username = user.globalName || user.username;
+    const avatarURL = user.displayAvatarURL({ format: "png" });
 
     // Ensure the attachment is an image
     if (!attachment.contentType.startsWith("image/")) {
@@ -41,7 +42,6 @@ client.on("messageCreate", async (message) => {
     }
 
     try {
-      const url = attachment.url;
       const imageBuffer = await downloadImage(attachment.url);
       const watermarkBuffer = await loadWatermark();
       const processedImage = await addWatermark(imageBuffer, watermarkBuffer);
@@ -57,6 +57,7 @@ client.on("messageCreate", async (message) => {
         .setImage("attachment://watermarked-image.png");
 
       await message.channel.send({
+        content: `Congratulationso on your success <@${user.id}> `,
         embeds: [embed],
         files: [processedAttachment],
       });
