@@ -52,17 +52,16 @@ client.on("messageCreate", async (message) => {
           name: "watermarked-image.png",
         });
 
-        const embed =
-          text === ""
-            ? new EmbedBuilder()
-                .setAuthor({ name: username, iconURL: avatarURL })
-                .setDescription(text ? "" : null)
-                .setImage("attachment://watermarked-image.png")
-                .setTimestamp()
-            : new EmbedBuilder()
-                .setAuthor({ name: username, iconURL: avatarURL })
-                .setImage("attachment://watermarked-image.png")
-                .setTimestamp();
+        const embed = text
+          ? new EmbedBuilder()
+              .setAuthor({ name: username, iconURL: avatarURL })
+              .setDescription(text)
+              .setImage("attachment://watermarked-image.png")
+              .setTimestamp()
+          : new EmbedBuilder()
+              .setAuthor({ name: username, iconURL: avatarURL })
+              .setImage("attachment://watermarked-image.png")
+              .setTimestamp();
 
         await message.channel.send({
           content: `Congratulations on your success <@${user.id}>!`,
