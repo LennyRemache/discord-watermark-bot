@@ -15,6 +15,7 @@
     "discord.js": "^14.16.2",
     "dotenv": "^16.4.5",
     "node-fetch": "^3.3.2",
+    "nodemon": "^3.1.6",
     "sharp": "^0.33.5"
   }
 }
