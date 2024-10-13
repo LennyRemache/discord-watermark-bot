@@ -47,9 +47,27 @@ export async function addWatermark(imageBuffer, watermarkBuffer) {
     const image = sharp(imageBuffer);
     const { width, height } = await image.metadata();
 
+    const watermarkWidth = null;
+    const watermarkHeight = null;
+
+    if (width < 256 && height < 256) {
+      if (width < height) {
+        watermarkWidth = width;
+        watermarkHeight = width;
+      } else if (height < width) {
+        watermarkWidth = height;
+        watermarkHeight = height;
+      }
+    } else if (width < 256) {
+      watermarkWidth = width;
+    } else if (height < 256) {
+      watermarkHeight = height;
+    }
+
     const resizedWatermarkBuffer = await sharp(watermarkBuffer)
       .resize({
-        width: width < 256 ? width : null,
+        width: watermarkWidth,
+        height: watermarkHeight,
       })
       .toBuffer();
     const processedImage = await sharp(imageBuffer)
